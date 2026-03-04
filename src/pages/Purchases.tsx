@@ -1,16 +1,30 @@
 import { useState } from "react";
 import {
   Box, Button, Typography, Dialog, DialogTitle, DialogContent,
-  DialogActions, TextField, IconButton
+  DialogActions, TextField, FormControl, InputLabel, Select, MenuItem
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import type { GridColDef } from "@mui/x-data-grid";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
-import EditIcon from "@mui/icons-material/Edit";
 
 const fetchPurchases = async () => {
   const { data } = await axios.get("http://127.0.0.1:8000/purchase/");
+  return data;
+};
+
+const fetchSuppliers = async () => {
+  const { data } = await axios.get("http://127.0.0.1:8000/suppliers/");
+  return data;
+};
+
+const fetchStocks = async () => {
+  const { data } = await axios.get("http://127.0.0.1:8000/stocks/");
+  return data;
+};
+
+const fetchProducts = async () => {
+  const { data } = await axios.get("http://127.0.0.1:8000/products/");
   return data;
 };
 
@@ -21,10 +35,10 @@ const addPurchase = async (newPurchase: any) => {
 
 export default function Purchases() {
   const queryClient = useQueryClient();
-  const { data: purchases, isLoading, error } = useQuery({
-    queryKey: ["purchases"],
-    queryFn: fetchPurchases,
-  });
+  const { data: purchases, isLoading, error } = useQuery({ queryKey: ["purchases"], queryFn: fetchPurchases });
+  const { data: suppliers } = useQuery({ queryKey: ["suppliers"], queryFn: fetchSuppliers });
+  const { data: stocks } = useQuery({ queryKey: ["stocks"], queryFn: fetchStocks });
+  const { data: products } = useQuery({ queryKey: ["products"], queryFn: fetchProducts });
 
   const addMutation = useMutation({
     mutationFn: addPurchase,
@@ -32,20 +46,37 @@ export default function Purchases() {
   });
 
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ supplier_id: "", stock_id: "", items: [] });
+  const [supplierId, setSupplierId] = useState("");
+  const [stockId, setStockId] = useState("");
+  const [items, setItems] = useState<any[]>([]);
+  const [itemForm, setItemForm] = useState({ product_id: "", quantity: "", unit_price: "" });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+  const handleAddItem = () => {
+    if (!stockId || !supplierId || !itemForm.product_id || !itemForm.quantity || !itemForm.unit_price) {
+      alert("Preencha todos os campos do item antes de adicionar.");
+      return;
+    }
+    const product = products?.find((p: any) => p.id === parseInt(itemForm.product_id));
+
+    setItems([...items, {
+      product_id: parseInt(itemForm.product_id),
+      product_description: product?.description ?? "",
+      quantity: parseInt(itemForm.quantity),
+      unit_price: parseFloat(itemForm.unit_price)
+    }]);
+    setItemForm({ product_id: "", quantity: "", unit_price: "" });
   };
 
   const handleSubmit = () => {
     addMutation.mutate({
-      supplier_id: parseInt(form.supplier_id),
-      stock_id: parseInt(form.stock_id),
-      items: form.items, // aqui futuramente podemos abrir sub-form para adicionar produtos
+      supplier_id: parseInt(supplierId),
+      stock_id: parseInt(stockId),
+      items,
     });
     setOpen(false);
-    setForm({ supplier_id: "", stock_id: "", items: [] });
+    setSupplierId("");
+    setStockId("");
+    setItems([]);
   };
 
   if (isLoading) return <p>Carregando...</p>;
@@ -54,16 +85,16 @@ export default function Purchases() {
   const columns: GridColDef[] = [
     { field: "id", headerName: "ID", width: 90 },
     {
-        field: "supplier",
-        headerName: "Fornecedor",
-        width: 150,
-        valueGetter: (params) => params.company_name
+      field: "supplier",
+      headerName: "Fornecedor",
+      width: 150,
+      valueGetter: (params) => params?.company_name ?? params.supplier_id
     },
     {
-        field: "stock",
-        headerName: "Estoque",
-        width: 150,
-        valueGetter: (params) => params.description
+      field: "stock",
+      headerName: "Estoque",
+      width: 150,
+      valueGetter: (params) => params?.description ?? params.stock_id
     },
     {
       field: "items",
@@ -71,7 +102,7 @@ export default function Purchases() {
       flex: 1,
       valueGetter: (params) =>
         params
-          .map((i: any) => `Produto ${i.product.description} (Qtd: ${i.quantity}, R$${i.unit_price})`)
+          .map((i: any) => `${i.product?.description ?? i.product_id} (Qtd: ${i.quantity}, R$${i.unit_price})`)
           .join("; "),
     },
     {
@@ -93,37 +124,81 @@ export default function Purchases() {
       <Typography variant="h5" gutterBottom>
         Compras
       </Typography>
-      <Button
-        variant="contained"
-        color="primary"
-        sx={{ mb: 2 }}
-        onClick={() => setOpen(true)}
-      >
+      <Button variant="contained" color="primary" sx={{ mb: 2 }} onClick={() => setOpen(true)}>
         Adicionar Compra
       </Button>
-      <DataGrid rows={purchases} columns={columns} pageSizeOptions={[5, 10]} autoHeight />
+      <DataGrid rows={purchases ?? []} columns={columns} pageSizeOptions={[5, 10]} autoHeight />
 
       {/* Modal de adicionar compra */}
-      <Dialog open={open} onClose={() => setOpen(false)}>
+      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
         <DialogTitle>Adicionar Compra</DialogTitle>
         <DialogContent>
+          {/* Fornecedor */}
+          <FormControl fullWidth margin="dense">
+            <InputLabel id="supplier-label">Fornecedor</InputLabel>
+            <Select labelId="supplier-label" value={supplierId} onChange={(e) => setSupplierId(e.target.value)}>
+              {suppliers?.map((s: any) => (
+                <MenuItem key={s.id} value={s.id}>{s.company_name}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          {/* Estoque */}
+          <FormControl fullWidth margin="dense">
+            <InputLabel id="stock-label">Estoque</InputLabel>
+            <Select labelId="stock-label" value={stockId} onChange={(e) => setStockId(e.target.value)}>
+              {stocks?.map((st: any) => (
+                <MenuItem key={st.id} value={st.id}>{st.description}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          {/* Itens */}
+          <FormControl fullWidth margin="dense">
+            <InputLabel id="product-label">Produto</InputLabel>
+            <Select
+              labelId="product-label"
+              value={itemForm.product_id}
+              onChange={(e) => setItemForm({ ...itemForm, product_id: e.target.value })}
+            >
+              {products?.map((p: any) => (
+                <MenuItem key={p.id} value={p.id}>{p.description}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
           <TextField
             margin="dense"
-            label="Fornecedor ID"
-            name="supplier_id"
+            label="Quantidade"
+            type="number"
             fullWidth
-            value={form.supplier_id}
-            onChange={handleChange}
+            required
+            value={itemForm.quantity}
+            onChange={(e) => setItemForm({ ...itemForm, quantity: e.target.value })}
           />
           <TextField
             margin="dense"
-            label="Estoque ID"
-            name="stock_id"
+            label="Preço Unitário"
+            type="number"
             fullWidth
-            value={form.stock_id}
-            onChange={handleChange}
+            required
+            value={itemForm.unit_price}
+            onChange={(e) => setItemForm({ ...itemForm, unit_price: e.target.value })}
           />
-          {/* Aqui futuramente podemos adicionar UI para inserir itens da compra */}
+          <Button sx={{ mt: 1 }} variant="outlined" onClick={handleAddItem}>
+            Adicionar Item
+          </Button>
+
+          {/* Lista de itens adicionados */}
+          {items.length > 0 && (
+            <Box sx={{ mt: 2 }}>
+              <Typography variant="subtitle1">Itens adicionados:</Typography>
+              {items.map((i, idx) => (
+                <Typography key={idx}>
+                  {i.product_description} - Qtd: {i.quantity} - R${i.unit_price}
+                </Typography>
+              ))}
+            </Box>
+          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpen(false)}>Cancelar</Button>
