@@ -1,4 +1,5 @@
 import React from "react";
+import { useState } from "react";
 import {
   AppBar,
   Toolbar,
@@ -9,7 +10,11 @@ import {
   ListItemText,
   Box,
   Button,
-  Avatar
+  Avatar,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions
 } from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
 
@@ -19,6 +24,8 @@ export default function BaseLayout({ children }: { children: React.ReactNode }) 
   const navigate = useNavigate();
   const user = localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user")!) : null;
   const name = user ? user.name.split(' ')[0] + ' ' + user.name.split(' ').slice(-1)[0] : "Não autenticado"
+  const [confirmOpenCashier, setConfirmOpenCashier] = useState(false);
+
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -59,6 +66,28 @@ export default function BaseLayout({ children }: { children: React.ReactNode }) 
         }}
       >
         <Box>
+          <Dialog open={confirmOpenCashier} onClose={() => setConfirmOpenCashier(false)}>
+            <DialogTitle textAlign={"center"}>Abrir Caixa</DialogTitle>
+            <DialogContent>
+              <Typography>Você deseja abrir o caixa?</Typography>
+            </DialogContent>
+            <DialogActions sx={{ justifyContent: "center" }}>
+              <Button onClick={() => setConfirmOpenCashier(false)} color="inherit">
+                Não
+              </Button>
+              <Button
+                onClick={() => {
+                  setConfirmOpenCashier(false);
+                  navigate("/sales"); // redireciona para a tela de vendas
+                }}
+                color="primary"
+                variant="contained"
+              >
+                Sim
+              </Button>
+            </DialogActions>
+          </Dialog>
+
           <Toolbar />
           <Box sx={{ overflow: "auto" }}>
             <List>
@@ -68,7 +97,7 @@ export default function BaseLayout({ children }: { children: React.ReactNode }) 
               <ListItemButton component={Link} to="/products">
                 <ListItemText primary="Produtos" />
               </ListItemButton>
-              <ListItemButton component={Link} to="/sales">
+              <ListItemButton onClick={() => setConfirmOpenCashier(true)}>
                 <ListItemText primary="Vendas" />
               </ListItemButton>
               <ListItemButton component={Link} to="/purchases">
