@@ -32,7 +32,7 @@ function App() {
           path="/sales"
           element={
             <PrivateRoute>
-              <BaseLayout><Sales /></BaseLayout>
+              <Sales />
             </PrivateRoute>
           }
         />

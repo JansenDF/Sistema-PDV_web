@@ -21,7 +21,7 @@ export default function Login() {
         });
         // salva token
         localStorage.setItem("token", data.access_token);
-        localStorage.setItem("user", JSON.stringify({ email: data.email, name: data.name }));
+        localStorage.setItem("user", JSON.stringify({ email: data.email, name: data.name, id: data.id }));
         // redireciona para dashboard
         window.location.href = "/dashboard";
     } catch (err: any) {

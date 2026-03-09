@@ -1,10 +1,12 @@
 import { useState } from "react";
 import {
   Box, Button, Typography, Dialog, DialogTitle, DialogContent,
-  DialogActions, TextField, FormControl, InputLabel, Select, MenuItem
+  DialogActions, TextField, FormControl, InputLabel, Select,
+  MenuItem, IconButton
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import type { GridColDef } from "@mui/x-data-grid";
+import DeleteIcon from "@mui/icons-material/Delete";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 
@@ -77,6 +79,11 @@ export default function Purchases() {
     setSupplierId("");
     setStockId("");
     setItems([]);
+  };
+  
+  const handleRemoveItem = (index: number) => {
+    const updatedItems = items.filter((_, idx) => idx !== index);
+    setItems(updatedItems);
   };
 
   if (isLoading) return <p>Carregando...</p>;
@@ -193,9 +200,14 @@ export default function Purchases() {
             <Box sx={{ mt: 2 }}>
               <Typography variant="subtitle1">Itens adicionados:</Typography>
               {items.map((i, idx) => (
-                <Typography key={idx}>
-                  {i.product_description} - Qtd: {i.quantity} - R${i.unit_price}
-                </Typography>
+                <Box key={idx} sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <Typography>
+                    {i.product_description} - Qtd: {i.quantity} - R${i.unit_price}
+                  </Typography>
+                  <IconButton color="error" onClick={() => handleRemoveItem(idx)}>
+                    <DeleteIcon />
+                  </IconButton>
+                </Box>
               ))}
             </Box>
           )}
