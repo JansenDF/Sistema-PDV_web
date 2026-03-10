@@ -15,6 +15,11 @@ const fetchProducts = async () => {
   return data;
 };
 
+const fetchSubCategories = async () => {
+  const { data } = await client.get("http://127.0.0.1:8000/product_sub_categories");
+  return data;
+};
+
 const fetchStocks = async () => {
   const { data } = await client.get("http://127.0.0.1:8000/stocks");
   return data;
@@ -44,6 +49,11 @@ export default function Products() {
     queryFn: fetchStocks,
   });
 
+  const { data: subCategories } = useQuery({
+    queryKey: ["subCategories"],
+    queryFn: fetchSubCategories,
+  });
+
   const addMutation = useMutation({
     mutationFn: addProduct,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["products"] }),
@@ -56,7 +66,14 @@ export default function Products() {
 
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(false);
-  const [form, setForm] = useState({ id: "", description: "", price: "", quantity: "", stock_id: "" });
+  const [form, setForm] = useState({
+    id: "",
+    description: "",
+    price: "",
+    quantity: "",
+    stock_id: "",
+    product_sub_category_id: "",
+  });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>) => {
     const { name, value } = e.target as HTMLInputElement;
@@ -69,6 +86,7 @@ export default function Products() {
         id: form.id,
         description: form.description,
         price: parseFloat(form.price),
+        product_sub_category_id: parseInt(form.product_sub_category_id),
       });
     } else {
       addMutation.mutate({
@@ -76,10 +94,18 @@ export default function Products() {
         price: parseFloat(form.price),
         quantity: parseInt(form.quantity),
         stock_id: parseInt(form.stock_id),
+        product_sub_category_id: parseInt(form.product_sub_category_id),
       });
     }
     setOpen(false);
-    setForm({ id: "", description: "", price: "", quantity: "", stock_id: "" });
+    setForm({
+      id: "",
+      description: "",
+      price: "",
+      quantity: "",
+      stock_id: "",
+      product_sub_category_id: ""
+    });
     setEditing(false);
   };
 
@@ -90,6 +116,7 @@ export default function Products() {
       price: row.price,
       quantity: row.quantity,
       stock_id: row.stock?.id || "",
+      product_sub_category_id: ""
     });
     setEditing(true);
     setOpen(true);
@@ -101,6 +128,12 @@ export default function Products() {
   const columns: GridColDef[] = [
     { field: "id", headerName: "ID", width: 90 },
     { field: "description", headerName: "Descrição", flex: 1 },
+    {
+      field: "product_sub_category",
+      headerName: "Categoria",
+      width: 200,
+      valueGetter: (params) => params.description.toUpperCase() ?? "",
+    },
     {
       field: "price",
       headerName: "Preço",
@@ -137,7 +170,7 @@ export default function Products() {
         color="primary"
         sx={{ mb: 2 }}
         onClick={() => {
-          setForm({ id: "", description: "", price: "", quantity: "", stock_id: "" });
+          setForm({ id: "", description: "", price: "", quantity: "", stock_id: "", product_sub_category_id: "" });
           setEditing(false);
           setOpen(true);
         }}
@@ -156,6 +189,21 @@ export default function Products() {
             value={form.description}
             onChange={handleChange}
           />
+          <FormControl fullWidth margin="dense">
+            <InputLabel id="subcat-label" sx={{backgroundColor: "white", paddingX: "6px"}}>Subcategoria</InputLabel>
+            <Select
+              labelId="subcat-label"
+              name="product_sub_category_id"
+              value={form.product_sub_category_id}
+              onChange={handleChange}
+            >
+              {subCategories?.map((sub: any) => (
+                <MenuItem key={sub.id} value={sub.id}>
+                  {sub.description}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
           <TextField
             margin="dense"
             label="Preço"
