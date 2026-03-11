@@ -11,27 +11,27 @@ import client from "../api/client";
 import EditIcon from "@mui/icons-material/Edit";
 
 const fetchProducts = async () => {
-  const { data } = await client.get("http://127.0.0.1:8000/products");
+  const { data } = await client.get("/products");
   return data;
 };
 
 const fetchSubCategories = async () => {
-  const { data } = await client.get("http://127.0.0.1:8000/product_sub_categories");
+  const { data } = await client.get("/product_sub_categories");
   return data;
 };
 
 const fetchStocks = async () => {
-  const { data } = await client.get("http://127.0.0.1:8000/stocks");
+  const { data } = await client.get("/stocks");
   return data;
 };
 
 const addProduct = async (newProduct: any) => {
-  const { data } = await client.post("http://127.0.0.1:8000/products", newProduct);
+  const { data } = await client.post("/products", newProduct);
   return data;
 };
 
 const updateProduct = async (product: any) => {
-  const { data } = await client.patch(`http://127.0.0.1:8000/products/${product.id}`, {
+  const { data } = await client.patch(`/products/${product.id}`, {
     description: product.description,
     price: product.price
   });

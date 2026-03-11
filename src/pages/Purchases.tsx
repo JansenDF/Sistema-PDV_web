@@ -8,30 +8,30 @@ import { DataGrid } from "@mui/x-data-grid";
 import type { GridColDef } from "@mui/x-data-grid";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
+import client from "../api/client";
 
 const fetchPurchases = async () => {
-  const { data } = await axios.get("http://127.0.0.1:8000/purchase/");
+  const { data } = await client.get("/purchase/");
   return data;
 };
 
 const fetchSuppliers = async () => {
-  const { data } = await axios.get("http://127.0.0.1:8000/suppliers/");
+  const { data } = await client.get("/suppliers/");
   return data;
 };
 
 const fetchStocks = async () => {
-  const { data } = await axios.get("http://127.0.0.1:8000/stocks/");
+  const { data } = await client.get("/stocks/");
   return data;
 };
 
 const fetchProducts = async () => {
-  const { data } = await axios.get("http://127.0.0.1:8000/products/");
+  const { data } = await client.get("/products/");
   return data;
 };
 
 const addPurchase = async (newPurchase: any) => {
-  const { data } = await axios.post("http://127.0.0.1:8000/purchase/", newPurchase);
+  const { data } = await client.post("/purchase/", newPurchase);
   return data;
 };
 

@@ -10,20 +10,21 @@ import { Autocomplete } from "@mui/material";
 import { ptBR } from "@mui/x-data-grid/locales"
 import { useQuery, useMutation } from "@tanstack/react-query";
 import axios from "axios";
+import client from "../api/client";
 
 const fetchProducts = async () => {
-  const { data } = await axios.get("http://127.0.0.1:8000/products/");
+  const { data } = await client.get("/products/");
   return data;
 };
 
 const fetchClients = async () => {
-  const { data } = await axios.get("http://127.0.0.1:8000/clients/");
+  const { data } = await client.get("/clients/");
   return data;
 };
 
 const addSale = async (newSale: any) => {
   console.log("salesss", newSale)
-  const { data } = await axios.post("http://127.0.0.1:8000/sales/", newSale);
+  const { data } = await client.post("/sales/", newSale);
   return data;
 };
 

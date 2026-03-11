@@ -3,7 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import client from "../api/client";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip,
-  ResponsiveContainer, CartesianGrid, Legend
+  ResponsiveContainer, CartesianGrid,
+  Legend, Line, LineChart
 } from "recharts";
 import InventoryIcon from "@mui/icons-material/Inventory";
 import MonetizationOnIcon from "@mui/icons-material/MonetizationOn";
@@ -11,11 +12,11 @@ import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 
 // Funções de API
 const fetchStockReport = async () => {
-  const { data } = await client.get("http://127.0.0.1:8000/reports/stock");
+  const { data } = await client.get("/reports/stock");
   return data;
 };
 const fetchSalesReport = async () => {
-  const { data } = await client.get("http://127.0.0.1:8000/reports/sales");
+  const { data } = await client.get("/reports/sales");
   return data;
 };
 
@@ -42,7 +43,16 @@ export default function Dashboard() {
     const dataVenda = new Date(s.created_at);
     return dataVenda.getMonth() === mesAtual && dataVenda.getFullYear() === anoAtual;
   });
+  const vendasDia = sales.filter((s: any) => {
+  const dataVenda = new Date(s.created_at);
+  return (
+    dataVenda.getDate() === now.getDate() &&
+    dataVenda.getMonth() === now.getMonth() &&
+    dataVenda.getFullYear() === now.getFullYear()
+  );
+});
   const totalVendasMes = vendasMes.reduce((acc: number, s: any) => acc + s.total_value, 0);
+  const totalVendasDia = vendasDia.reduce((acc: number, s: any) => acc + s.total_value, 0);
 
   const nomesMeses = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
   const vendasPorMes = Array.from({ length: 12 }, (_, i) => {
@@ -50,6 +60,12 @@ export default function Dashboard() {
     const total = vendasDoMes.reduce((acc: number, s: any) => acc + s.total_value, 0);
     const quantidade = vendasDoMes.length;
     return { mes: nomesMeses[i], total, quantidade };
+  });
+  const diasNoMes = new Date(anoAtual, mesAtual + 1, 0).getDate();
+  const vendasPorDia = Array.from({ length: diasNoMes }, (_, i) => {
+    const vendasDoDia = vendasMes.filter((s: any) => new Date(s.created_at).getDate() === i + 1);
+    const total = vendasDoDia.reduce((acc: number, s: any) => acc + s.total_value, 0);
+    return { dia: i + 1, total };
   });
 
   return (
@@ -74,7 +90,11 @@ export default function Dashboard() {
             <CardContent sx={{ textAlign: "center" }}>
               <MonetizationOnIcon fontSize="large" color="success" />
               <Typography variant="h6">Valor Total em Estoque</Typography>
-              <Typography variant="h4">R$ {valorTotalEstoque.toFixed(2)}</Typography>
+              {/* <Typography variant="h4">R$ {valorTotalEstoque.toFixed(2)}</Typography> */}
+              <Typography variant="h4">R$ {valorTotalEstoque.toLocaleString('pt-BR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+              })}</Typography>
             </CardContent>
           </Card>
         </Grid>
@@ -84,18 +104,48 @@ export default function Dashboard() {
             <CardContent sx={{ textAlign: "center" }}>
               <ShoppingCartIcon fontSize="large" color="warning" />
               <Typography variant="h6">Vendas no Mês</Typography>
-              <Typography variant="h4">R$ {totalVendasMes.toFixed(2)}</Typography>
+              <Typography variant="h4">R$ {totalVendasMes.toLocaleString('pt-BR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+              })}</Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+      
+        <Grid item xs={12} md={4}>
+          <Card sx={{ backgroundColor: "#fce4ec" }}>
+            <CardContent sx={{ textAlign: "center" }}>
+              <ShoppingCartIcon fontSize="large" color="error" />
+              <Typography variant="h6">Vendas do Dia</Typography>
+              <Typography variant="h4">R$ {totalVendasDia.toLocaleString('pt-BR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+              })}</Typography>
             </CardContent>
           </Card>
         </Grid>
       </Grid>
+
+      <Typography variant="h5" gutterBottom sx={{ fontWeight: "bold", mt: 5 }}>
+        Vendas do Mês (Dia a Dia)
+      </Typography>
+      <ResponsiveContainer width="70%" height={200}>
+        <LineChart data={vendasPorDia}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="dia" />
+          <YAxis />
+          <Tooltip />
+          <Legend />
+          <Line type="monotone" dataKey="total" stroke="#4caf50" name="Valor Diário" />
+        </LineChart>
+      </ResponsiveContainer>
 
       {/* Gráfico de valor */}
       <Box width="100%">
         <Typography variant="h5" gutterBottom sx={{ fontWeight: "bold" }}>
           Vendas Mensais (R$)
         </Typography>
-        <ResponsiveContainer width="100%" height={350}>
+        <ResponsiveContainer width="70%" height={200}>
           <BarChart data={vendasPorMes}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="mes" />
@@ -110,7 +160,7 @@ export default function Dashboard() {
         <Typography variant="h5" gutterBottom sx={{ fontWeight: "bold", mt: 5 }}>
           Quantidade de Vendas por Mês
         </Typography>
-        <ResponsiveContainer width="100%" height={350}>
+        <ResponsiveContainer width="70%" height={200}>
           <BarChart data={vendasPorMes}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="mes" />

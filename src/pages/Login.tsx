@@ -16,7 +16,7 @@ export default function Login() {
         params.append("username", form.username);
         params.append("password", form.password);
 
-        const { data } = await client.post("http://127.0.0.1:8000/login", params, {
+        const { data } = await client.post("/login", params, {
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
         });
         // salva token
