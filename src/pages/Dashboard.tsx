@@ -9,6 +9,7 @@ import {
 import InventoryIcon from "@mui/icons-material/Inventory";
 import MonetizationOnIcon from "@mui/icons-material/MonetizationOn";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+import AttachMoney from "@mui/icons-material/AttachMoney";
 
 // Funções de API
 const fetchStockReport = async () => {
@@ -89,7 +90,7 @@ export default function Dashboard() {
           <Card sx={{ backgroundColor: "#e8f5e9" }}>
             <CardContent sx={{ textAlign: "center" }}>
               <MonetizationOnIcon fontSize="large" color="success" />
-              <Typography variant="h6">Valor Total em Estoque</Typography>
+              <Typography variant="h6">Valor do Estoque</Typography>
               {/* <Typography variant="h4">R$ {valorTotalEstoque.toFixed(2)}</Typography> */}
               <Typography variant="h4">R$ {valorTotalEstoque.toLocaleString('pt-BR', {
                 minimumFractionDigits: 2,
@@ -102,8 +103,8 @@ export default function Dashboard() {
         <Grid item xs={12} md={4}>
           <Card sx={{ backgroundColor: "#fff3e0" }}>
             <CardContent sx={{ textAlign: "center" }}>
-              <ShoppingCartIcon fontSize="large" color="warning" />
-              <Typography variant="h6">Vendas no Mês</Typography>
+              <AttachMoney fontSize="large" color="warning"/>
+              <Typography variant="h6">Vendas Mês</Typography>
               <Typography variant="h4">R$ {totalVendasMes.toLocaleString('pt-BR', {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
@@ -115,8 +116,8 @@ export default function Dashboard() {
         <Grid item xs={12} md={4}>
           <Card sx={{ backgroundColor: "#fce4ec" }}>
             <CardContent sx={{ textAlign: "center" }}>
-              <ShoppingCartIcon fontSize="large" color="error" />
-              <Typography variant="h6">Vendas do Dia</Typography>
+              <AttachMoney fontSize="large" color="error"/>
+              <Typography variant="h6">Vendas Dia</Typography>
               <Typography variant="h4">R$ {totalVendasDia.toLocaleString('pt-BR', {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
@@ -127,7 +128,7 @@ export default function Dashboard() {
       </Grid>
 
       <Typography variant="h5" gutterBottom sx={{ fontWeight: "bold", mt: 5 }}>
-        Vendas do Mês (Dia a Dia)
+        Vendas Dia (R$)
       </Typography>
       <ResponsiveContainer width="70%" height={200}>
         <LineChart data={vendasPorDia}>
@@ -143,7 +144,7 @@ export default function Dashboard() {
       {/* Gráfico de valor */}
       <Box width="100%">
         <Typography variant="h5" gutterBottom sx={{ fontWeight: "bold" }}>
-          Vendas Mensais (R$)
+          Vendas Mês (R$)
         </Typography>
         <ResponsiveContainer width="70%" height={200}>
           <BarChart data={vendasPorMes}>
@@ -153,21 +154,6 @@ export default function Dashboard() {
             <Tooltip />
             <Legend />
             <Bar dataKey="total" fill="#1976d2" name="Valor Total" />
-          </BarChart>
-        </ResponsiveContainer>
-
-        {/* Gráfico de quantidade */}
-        <Typography variant="h5" gutterBottom sx={{ fontWeight: "bold", mt: 5 }}>
-          Quantidade de Vendas por Mês
-        </Typography>
-        <ResponsiveContainer width="70%" height={200}>
-          <BarChart data={vendasPorMes}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="mes" />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Bar dataKey="quantidade" fill="#ff9800" name="Quantidade de Vendas" />
           </BarChart>
         </ResponsiveContainer>
       </Box>
