@@ -101,24 +101,24 @@ export default function Dashboard() {
         </Grid>
 
         <Grid item xs={12} md={4}>
-          <Card sx={{ backgroundColor: "#fff3e0" }}>
+          <Card sx={{ backgroundColor: "#fce4ec" }}>
             <CardContent sx={{ textAlign: "center" }}>
-              <AttachMoney fontSize="large" color="warning"/>
-              <Typography variant="h6">Vendas Mês</Typography>
-              <Typography variant="h4">R$ {totalVendasMes.toLocaleString('pt-BR', {
+              <AttachMoney fontSize="large" color="error"/>
+              <Typography variant="h6">Vendas Dia</Typography>
+              <Typography variant="h4">R$ {totalVendasDia.toLocaleString('pt-BR', {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
               })}</Typography>
             </CardContent>
           </Card>
         </Grid>
-      
+
         <Grid item xs={12} md={4}>
-          <Card sx={{ backgroundColor: "#fce4ec" }}>
+          <Card sx={{ backgroundColor: "#fff3e0" }}>
             <CardContent sx={{ textAlign: "center" }}>
-              <AttachMoney fontSize="large" color="error"/>
-              <Typography variant="h6">Vendas Dia</Typography>
-              <Typography variant="h4">R$ {totalVendasDia.toLocaleString('pt-BR', {
+              <AttachMoney fontSize="large" color="warning"/>
+              <Typography variant="h6">Vendas Mês</Typography>
+              <Typography variant="h4">R$ {totalVendasMes.toLocaleString('pt-BR', {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
               })}</Typography>

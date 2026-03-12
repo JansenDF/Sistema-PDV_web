@@ -127,7 +127,12 @@ export default function Products() {
 
   const columns: GridColDef[] = [
     { field: "id", headerName: "ID", width: 90 },
-    { field: "description", headerName: "Descrição", flex: 1 },
+    {
+      field: "description",
+      headerName: "Descrição",
+      flex: 1,
+      valueFormatter: params => params ? params.toUpperCase() : ''
+    },
     {
       field: "product_sub_category",
       headerName: "Categoria",
@@ -177,7 +182,13 @@ export default function Products() {
       >
         Adicionar Produto
       </Button>
-      <DataGrid localeText={ptBR.components.MuiDataGrid.defaultProps.localeText} rows={products} columns={columns} pageSizeOptions={[5, 10]} autoHeight />
+      <DataGrid
+        pageSizeOptions={[10, 100, { value: 1000, label: '1,000' }, { value: -1, label: 'All' }]}
+        localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
+        rows={products}
+        columns={columns}
+        autoHeight
+      />
       <Dialog open={open} onClose={() => setOpen(false)}>
         <DialogTitle>{editing ? "Editar Produto" : "Adicionar Produto"}</DialogTitle>
         <DialogContent>

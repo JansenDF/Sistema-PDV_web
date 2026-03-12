@@ -95,7 +95,7 @@ export default function Purchases() {
       field: "supplier",
       headerName: "Fornecedor",
       width: 150,
-      valueGetter: (params) => params?.company_name ?? params.supplier_id
+      valueGetter: (params) => params?.company_name.toUpperCase() ?? params.supplier_id
     },
     {
       field: "stock",
@@ -109,7 +109,7 @@ export default function Purchases() {
       flex: 1,
       valueGetter: (params) =>
         params
-          .map((i: any) => `${i.product?.description ?? i.product_id} (Qtd: ${i.quantity}, R$${i.unit_price})`)
+          .map((i: any) => `${i.product?.description.toUpperCase() ?? i.product_id} (Qtd: ${i.quantity}, R$${i.unit_price})`)
           .join("; "),
     },
     {
