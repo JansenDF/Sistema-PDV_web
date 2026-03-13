@@ -7,6 +7,7 @@ import Products from "./pages/Products";
 import Sales from "./pages/Sales";
 import Purchases from "./pages/Purchases";
 import Reports from "./pages/Reports";
+import Solds from "./pages/Solds"
 
 function App() {
   return (
@@ -49,6 +50,14 @@ function App() {
           element={
             <PrivateRoute>
               <BaseLayout><Reports /></BaseLayout>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/solds"
+          element={
+            <PrivateRoute>
+              <BaseLayout><Solds /></BaseLayout>
             </PrivateRoute>
           }
         />
