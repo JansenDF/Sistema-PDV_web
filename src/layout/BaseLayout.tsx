@@ -97,14 +97,14 @@ export default function BaseLayout({ children }: { children: React.ReactNode }) 
               <ListItemButton component={Link} to="/products">
                 <ListItemText primary="Produtos" />
               </ListItemButton>
-              <ListItemButton onClick={() => setConfirmOpenCashier(true)}>
-                <ListItemText primary="Vendas" />
-              </ListItemButton>
               <ListItemButton component={Link} to="/purchases">
                 <ListItemText primary="Compras" />
               </ListItemButton>
               <ListItemButton component={Link} to="/reports">
                 <ListItemText primary="Relatórios" />
+              </ListItemButton>
+              <ListItemButton onClick={() => setConfirmOpenCashier(true)}>
+                <ListItemText primary="Caixa" />
               </ListItemButton>
             </List>
           </Box>

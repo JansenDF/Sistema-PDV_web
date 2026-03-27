@@ -1,7 +1,8 @@
 import { useState } from "react";
 import {
   Box, Button, Typography, Dialog, DialogTitle, DialogContent,
-  DialogActions, TextField, MenuItem, Select, InputLabel, FormControl, IconButton
+  DialogActions, TextField, IconButton,
+  Card, CardContent, Chip, Alert, Skeleton
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { ptBR } from "@mui/x-data-grid/locales"
@@ -9,24 +10,11 @@ import type { GridColDef } from "@mui/x-data-grid";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import client from "../api/client";
 import EditIcon from "@mui/icons-material/Edit";
+import Inventory2Icon from "@mui/icons-material/Inventory2";
+import { useNavigate } from "react-router-dom";
 
 const fetchProducts = async () => {
   const { data } = await client.get("/products");
-  return data;
-};
-
-const fetchSubCategories = async () => {
-  const { data } = await client.get("/product_sub_categories");
-  return data;
-};
-
-const fetchStocks = async () => {
-  const { data } = await client.get("/stocks");
-  return data;
-};
-
-const addProduct = async (newProduct: any) => {
-  const { data } = await client.post("/products", newProduct);
   return data;
 };
 
@@ -39,24 +27,11 @@ const updateProduct = async (product: any) => {
 };
 
 export default function Products() {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { data: products, isLoading, error } = useQuery({
     queryKey: ["products"],
     queryFn: fetchProducts,
-  });
-  const { data: stocks } = useQuery({
-    queryKey: ["stocks"],
-    queryFn: fetchStocks,
-  });
-
-  const { data: subCategories } = useQuery({
-    queryKey: ["subCategories"],
-    queryFn: fetchSubCategories,
-  });
-
-  const addMutation = useMutation({
-    mutationFn: addProduct,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["products"] }),
   });
 
   const updateMutation = useMutation({
@@ -65,48 +40,29 @@ export default function Products() {
   });
 
   const [open, setOpen] = useState(false);
-  const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({
     id: "",
     description: "",
     price: "",
-    quantity: "",
-    stock_id: "",
-    product_sub_category_id: "",
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target as HTMLInputElement;
     setForm({ ...form, [name!]: value });
   };
 
   const handleSubmit = () => {
-    if (editing) {
-      updateMutation.mutate({
-        id: form.id,
-        description: form.description,
-        price: parseFloat(form.price),
-        product_sub_category_id: parseInt(form.product_sub_category_id),
-      });
-    } else {
-      addMutation.mutate({
-        description: form.description,
-        price: parseFloat(form.price),
-        quantity: parseInt(form.quantity),
-        stock_id: parseInt(form.stock_id),
-        product_sub_category_id: parseInt(form.product_sub_category_id),
-      });
-    }
+    updateMutation.mutate({
+      id: form.id,
+      description: form.description,
+      price: parseFloat(form.price),
+    });
     setOpen(false);
     setForm({
       id: "",
       description: "",
       price: "",
-      quantity: "",
-      stock_id: "",
-      product_sub_category_id: ""
     });
-    setEditing(false);
   };
 
   const handleEdit = (row: any) => {
@@ -114,16 +70,9 @@ export default function Products() {
       id: row.id,
       description: row.description,
       price: row.price,
-      quantity: row.quantity,
-      stock_id: row.stock?.id || "",
-      product_sub_category_id: ""
     });
-    setEditing(true);
     setOpen(true);
   };
-
-  if (isLoading) return <p>Carregando...</p>;
-  if (error) return <p>Erro ao carregar produtos</p>;
 
   const columns: GridColDef[] = [
     { field: "id", headerName: "ID", width: 90 },
@@ -167,30 +116,87 @@ export default function Products() {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Typography variant="h5" gutterBottom>
-        Produtos
-      </Typography>
-      <Button
-        variant="contained"
-        color="primary"
-        sx={{ mb: 2 }}
-        onClick={() => {
-          setForm({ id: "", description: "", price: "", quantity: "", stock_id: "", product_sub_category_id: "" });
-          setEditing(false);
-          setOpen(true);
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: { xs: "flex-start", sm: "center" },
+          justifyContent: "space-between",
+          gap: 2,
+          flexDirection: { xs: "column", sm: "row" },
+          mb: 3,
         }}
       >
-        Adicionar Produto
-      </Button>
-      <DataGrid
-        pageSizeOptions={[10, 100, { value: 1000, label: '1,000' }, { value: -1, label: 'All' }]}
-        localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
-        rows={products}
-        columns={columns}
-        autoHeight
-      />
+        <Box>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.5 }}>
+            <Inventory2Icon color="primary" />
+            <Typography variant="h5" sx={{ fontWeight: "bold" }}>
+              Produtos
+            </Typography>
+          </Box>
+          <Typography variant="body2" color="text.secondary">
+            Cadastre e atualize produtos com categoria, estoque e preco.
+          </Typography>
+        </Box>
+
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => navigate("/products/new")}
+        >
+          Adicionar Produto
+        </Button>
+      </Box>
+
+      {error ? (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          Erro ao carregar produtos.
+        </Alert>
+      ) : (
+        <Card sx={{ borderRadius: 2 }}>
+          <CardContent>
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 2,
+                flexWrap: "wrap",
+                mb: 2,
+              }}
+            >
+              <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+                Resumo
+              </Typography>
+              <Chip
+                label={`Produtos: ${(products ?? []).length}`}
+                variant="outlined"
+                color="primary"
+                size="small"
+              />
+            </Box>
+
+            {isLoading ? (
+              <Box>
+                <Skeleton height={42} sx={{ mb: 1 }} />
+                <Skeleton height={42} sx={{ mb: 1 }} />
+                <Skeleton height={42} sx={{ mb: 1 }} />
+                <Skeleton height={42} />
+              </Box>
+            ) : (
+              <DataGrid
+                pageSizeOptions={[10, 100, { value: 1000, label: "1,000" }, { value: -1, label: "All" }]}
+                localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
+                rows={products ?? []}
+                columns={columns}
+                autoHeight
+                disableRowSelectionOnClick
+              />
+            )}
+          </CardContent>
+        </Card>
+      )}
       <Dialog open={open} onClose={() => setOpen(false)}>
-        <DialogTitle>{editing ? "Editar Produto" : "Adicionar Produto"}</DialogTitle>
+        <DialogTitle>Editar Produto</DialogTitle>
         <DialogContent>
           <TextField
             margin="dense"
@@ -200,21 +206,6 @@ export default function Products() {
             value={form.description}
             onChange={handleChange}
           />
-          <FormControl fullWidth margin="dense">
-            <InputLabel id="subcat-label" sx={{backgroundColor: "white", paddingX: "6px"}}>Subcategoria</InputLabel>
-            <Select
-              labelId="subcat-label"
-              name="product_sub_category_id"
-              value={form.product_sub_category_id}
-              onChange={handleChange}
-            >
-              {subCategories?.map((sub: any) => (
-                <MenuItem key={sub.id} value={sub.id}>
-                  {sub.description}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
           <TextField
             margin="dense"
             label="Preço"
@@ -224,39 +215,11 @@ export default function Products() {
             value={form.price}
             onChange={handleChange}
           />
-          {!editing && (
-            <>
-              <TextField
-                margin="dense"
-                label="Quantidade"
-                name="quantity"
-                type="number"
-                fullWidth
-                value={form.quantity}
-                onChange={handleChange}
-              />
-              <FormControl fullWidth margin="dense">
-                <InputLabel id="stock-label">Estoque</InputLabel>
-                <Select
-                  labelId="stock-label"
-                  name="stock_id"
-                  value={form.stock_id}
-                  onChange={handleChange}
-                >
-                  {stocks?.map((stock: any) => (
-                    <MenuItem key={stock.id} value={stock.id}>
-                      {stock.description}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </>
-          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpen(false)}>Cancelar</Button>
           <Button onClick={handleSubmit} variant="contained" color="primary">
-            {editing ? "Atualizar" : "Salvar"}
+            Atualizar
           </Button>
         </DialogActions>
       </Dialog>

@@ -2,10 +2,12 @@ import { useState, useEffect } from "react";
 import {
   Box, Typography, Button, TextField, IconButton, Dialog,
   DialogTitle, DialogContent, DialogActions,
+  Card, CardContent, Chip, Alert, Skeleton
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import type { GridColDef } from "@mui/x-data-grid";
 import DeleteIcon from "@mui/icons-material/Delete";
+import PointOfSaleIcon from "@mui/icons-material/PointOfSale";
 import { Autocomplete } from "@mui/material";
 import { ptBR } from "@mui/x-data-grid/locales"
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -30,8 +32,16 @@ const addSale = async (newSale: any) => {
 
 
 export default function Sales() {
-  const { data: products } = useQuery({ queryKey: ["products"], queryFn: fetchProducts });
-  const { data: clients } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
+  const {
+    data: products,
+    isLoading: loadingProducts,
+    error: errorProducts,
+  } = useQuery({ queryKey: ["products"], queryFn: fetchProducts });
+  const {
+    data: clients,
+    isLoading: loadingClients,
+    error: errorClients,
+  } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
 
   const saleMutation = useMutation({
     mutationFn: addSale,
@@ -139,6 +149,8 @@ export default function Sales() {
 
   const subtotal = cart.reduce((sum, i) => sum + i.total, 0);
   const troco = received ? parseFloat(received) - subtotal : 0;
+  const hasLoadError = Boolean(errorProducts || errorClients);
+  const isLoadingData = loadingProducts || loadingClients;
 
   const columns: GridColDef[] = [
     { field: "id", headerName: "Nº", width: 60 },
@@ -162,7 +174,41 @@ export default function Sales() {
 
   return (
     <>
-      <Typography variant="h2" gutterBottom textAlign={"center"}>CAIXA</Typography>
+      <Box sx={{ px: 3, pt: 3 }}>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: { xs: "flex-start", sm: "center" },
+            justifyContent: "space-between",
+            gap: 2,
+            flexDirection: { xs: "column", sm: "row" },
+            mb: 2,
+          }}
+        >
+          <Box>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.5 }}>
+              <PointOfSaleIcon color="primary" />
+              <Typography variant="h4" sx={{ fontWeight: "bold" }}>
+                Caixa
+              </Typography>
+            </Box>
+            <Typography variant="body2" color="text.secondary">
+              Registre itens, confirme o pagamento e finalize a venda.
+            </Typography>
+          </Box>
+          <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+            <Chip label={`Itens: ${cart.length}`} size="small" color="primary" variant="outlined" />
+            <Chip
+              label={`Subtotal: R$ ${subtotal.toLocaleString("pt-BR", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}`}
+              size="small"
+              variant="outlined"
+            />
+          </Box>
+        </Box>
+      </Box>
       <Dialog open={confirmSale} onClose={() => setConfirmSale(false)}>
         <DialogTitle textAlign={"center"}>Confirmar Venda</DialogTitle>
         <DialogContent>
@@ -212,9 +258,20 @@ export default function Sales() {
           </Button>
         </DialogActions>
       </Dialog>
-      <Box sx={{ display: "flex", gap: 3, p: 3 }}>
+      {hasLoadError ? (
+        <Box sx={{ px: 3 }}>
+          <Alert severity="error">Erro ao carregar produtos ou clientes.</Alert>
+        </Box>
+      ) : isLoadingData ? (
+        <Box sx={{ p: 3 }}>
+          <Skeleton height={320} />
+          <Skeleton height={56} sx={{ mt: 1 }} />
+        </Box>
+      ) : (
+      <Box sx={{ display: "flex", gap: 3, p: 3, flexDirection: { xs: "column", md: "row" } }}>
         {/* Coluna esquerda - lista de produtos */}
-        <Box sx={{ flex: 2 }}>
+        <Card sx={{ flex: 2, borderRadius: 2 }}>
+          <CardContent>
           <Typography variant="h6" gutterBottom>Itens da Venda</Typography>
           <DataGrid
             rows={cart}
@@ -224,10 +281,12 @@ export default function Sales() {
             sx={{ height: 400 }}
             hideFooter
           />
-        </Box>
+          </CardContent>
+        </Card>
 
         {/* Coluna direita - inputs */}
-        <Box sx={{ flex: 1 }}>
+        <Card sx={{ flex: 1, borderRadius: 2 }}>
+          <CardContent>
           <Typography variant="h6" gutterBottom>Dados da Venda</Typography>
 
           {/* Cliente */}
@@ -279,10 +338,13 @@ export default function Sales() {
           <Button variant="outlined" sx={{ mt: 2 }} onClick={handleAddItem}>
             Adicionar Item
           </Button>
-        </Box>
+          </CardContent>
+        </Card>
       </Box>
+      )}
       {/* Rodapé - subtotal e finalizar */}
-      <Box sx={{ mt: 3, p: 2, borderTop: "2px solid #1976d2", bgcolor: "#f9f9f9" }}>
+      <Card sx={{ mt: 3, mx: 3, mb: 3, borderRadius: 2 }}>
+        <CardContent>
         <Typography variant="h6">Subtotal: R${subtotal.toFixed(2)}</Typography>
         <TextField
           label="Valor Recebido"
@@ -313,7 +375,8 @@ export default function Sales() {
         >
           Sair
         </Button>
-      </Box>
+        </CardContent>
+      </Card>
     </>
   );
 }
