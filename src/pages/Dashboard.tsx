@@ -79,11 +79,36 @@ export default function Dashboard() {
     const quantidade = vendasDoMes.length;
     return { mes: nomesMeses[i], total, quantidade };
   });
-  const diasNoMes = new Date(anoAtual, mesAtual + 1, 0).getDate();
-  const vendasPorDia = Array.from({ length: diasNoMes }, (_, i) => {
-    const vendasDoDia = vendasMes.filter((s: any) => new Date(s.created_at).getDate() === i + 1);
-    const total = vendasDoDia.reduce((acc: number, s: any) => acc + s.total_value, 0);
-    return { dia: i + 1, total };
+
+  const mesAnterior = mesAtual === 0 ? 11 : mesAtual - 1;
+  const anoMesAnterior = mesAtual === 0 ? anoAtual - 1 : anoAtual;
+  const diasNoMesAnterior = new Date(anoMesAnterior, mesAnterior + 1, 0).getDate();
+  const diasNoMesAtual = new Date(anoAtual, mesAtual + 1, 0).getDate();
+  const diaHoje = now.getDate();
+
+  const vendasMesAnterior = (sales ?? []).filter((s: any) => {
+    const d = new Date(s.created_at);
+    return d.getMonth() === mesAnterior && d.getFullYear() === anoMesAnterior;
+  });
+
+  const diasNoGrafico = Math.max(diasNoMesAnterior, diaHoje, diasNoMesAtual);
+  const labelMesAnterior = `${nomesMeses[mesAnterior]}/${anoMesAnterior}`;
+  const labelMesAtual = `${nomesMeses[mesAtual]}/${anoAtual}`;
+
+  const vendasPorDiaComparativo = Array.from({ length: diasNoGrafico }, (_, i) => {
+    const dia = i + 1;
+    const totalAnterior = dia <= diasNoMesAnterior
+      ? vendasMesAnterior
+          .filter((s: any) => new Date(s.created_at).getDate() === dia)
+          .reduce((acc: number, s: any) => acc + s.total_value, 0)
+      : null;
+    const totalAtual =
+      dia <= diaHoje
+        ? vendasMes
+            .filter((s: any) => new Date(s.created_at).getDate() === dia)
+            .reduce((acc: number, s: any) => acc + s.total_value, 0)
+        : null;
+    return { dia, mesAnterior: totalAnterior, mesAtual: totalAtual };
   });
 
   return (
@@ -148,17 +173,30 @@ export default function Dashboard() {
       <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", lg: "1fr 1fr" } }}>
         <Card sx={{ borderRadius: 2 }}>
           <CardContent>
-            <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2 }}>
-              Vendas Dia (R$)
+            <Typography variant="h6" sx={{ fontWeight: "bold", mb: 1 }}>
+              Vendas por dia (R$)
             </Typography>
             <ResponsiveContainer width="100%" height={260}>
-              <LineChart data={vendasPorDia}>
+              <LineChart data={vendasPorDiaComparativo}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="dia" />
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Line type="monotone" dataKey="total" stroke="#4caf50" name="Valor Diario" />
+                <Line
+                  type="monotone"
+                  dataKey="mesAtual"
+                  stroke="#4caf50"
+                  name={`${labelMesAtual}`}
+                  dot={false}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="mesAnterior"
+                  stroke="#9e9e9e"
+                  name={labelMesAnterior}
+                  dot={false}
+                />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>
