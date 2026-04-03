@@ -11,7 +11,9 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import client from "../api/client";
 import EditIcon from "@mui/icons-material/Edit";
 import Inventory2Icon from "@mui/icons-material/Inventory2";
+import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import { useNavigate } from "react-router-dom";
+import { exportProductsLabelExcel } from "../utils/exportProductsLabelExcel";
 
 const fetchProducts = async () => {
   const { data } = await client.get("/products");
@@ -80,27 +82,28 @@ export default function Products() {
       field: "description",
       headerName: "Descrição",
       flex: 1,
-      valueFormatter: params => params ? params.toUpperCase() : ''
+      valueFormatter: (value) => (value ? String(value).toUpperCase() : ""),
     },
     {
       field: "product_sub_category",
       headerName: "Categoria",
       width: 200,
-      valueGetter: (params) => params.description.toUpperCase() ?? "",
+      valueGetter: (_value, row) =>
+        row?.product_sub_category?.description?.toUpperCase?.() ?? "",
     },
     {
       field: "price",
       headerName: "Preço",
       width: 150,
-      valueFormatter: (params) =>
-        new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(params),
+      valueFormatter: (value) =>
+        new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(value)),
     },
     { field: "quantity", headerName: "Quantidade", width: 150 },
     {
       field: "stock",
       headerName: "Estoque",
       width: 200,
-      valueGetter: (params) => params.description ?? "",
+      valueGetter: (_value, row) => row?.stock?.description ?? "",
     },
     {
       field: "actions",
@@ -138,13 +141,26 @@ export default function Products() {
           </Typography>
         </Box>
 
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => navigate("/products/new")}
-        >
-          Adicionar Produto
-        </Button>
+        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1.5, justifyContent: { xs: "stretch", sm: "flex-end" } }}>
+          <Button
+            variant="outlined"
+            color="primary"
+            startIcon={<FileDownloadIcon />}
+            disabled={isLoading || !(products ?? []).length}
+            onClick={() => {
+              void exportProductsLabelExcel(products ?? []);
+            }}
+          >
+            Excel para etiquetas
+          </Button>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => navigate("/products/new")}
+          >
+            Adicionar Produto
+          </Button>
+        </Box>
       </Box>
 
       {error ? (
