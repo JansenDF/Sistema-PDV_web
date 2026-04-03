@@ -61,7 +61,7 @@ export default function Solds() {
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.5 }}>
             <ReceiptLongIcon color="primary" />
             <Typography variant="h5" sx={{ fontWeight: "bold" }}>
-              Ultimas vendas
+              Mais vendidos
             </Typography>
           </Box>
           <Typography variant="body2" color="text.secondary">

@@ -38,7 +38,7 @@ export default function Reports() {
             <CardContent>
               <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
                 <ReceiptLongIcon color="primary" />
-                <Typography variant="h6">Ultimas Vendas</Typography>
+                <Typography variant="h6">Mais vendidos</Typography>
               </Box>
               <Typography variant="body2" color="text.secondary">
                 Visualize rapidamente as vendas recentes para acompanhar o
