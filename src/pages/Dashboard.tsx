@@ -10,6 +10,7 @@ import InventoryIcon from "@mui/icons-material/Inventory";
 import MonetizationOnIcon from "@mui/icons-material/MonetizationOn";
 import AttachMoney from "@mui/icons-material/AttachMoney";
 import DashboardIcon from "@mui/icons-material/Dashboard";
+import dayjs from "dayjs";
 
 // Funções de API
 const fetchStockReport = async () => {
@@ -58,11 +59,11 @@ export default function Dashboard() {
   const mesAtual = now.getMonth();
   const anoAtual = now.getFullYear();
   const vendasMes = (sales ?? []).filter((s: any) => {
-    const dataVenda = new Date(s.created_at);
+    const dataVenda = dayjs(s.date).toDate();
     return dataVenda.getMonth() === mesAtual && dataVenda.getFullYear() === anoAtual;
   });
   const vendasDia = (sales ?? []).filter((s: any) => {
-  const dataVenda = new Date(s.created_at);
+  const dataVenda = dayjs(s.date).toDate();
   return (
     dataVenda.getDate() === now.getDate() &&
     dataVenda.getMonth() === now.getMonth() &&
@@ -74,7 +75,7 @@ export default function Dashboard() {
 
   const nomesMeses = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
   const vendasPorMes = Array.from({ length: 12 }, (_, i) => {
-    const vendasDoMes = (sales ?? []).filter((s: any) => new Date(s.created_at).getMonth() === i);
+    const vendasDoMes = (sales ?? []).filter((s: any) => dayjs(s.date).toDate().getMonth() === i);
     const total = vendasDoMes.reduce((acc: number, s: any) => acc + s.total_value, 0);
     const quantidade = vendasDoMes.length;
     return { mes: nomesMeses[i], total, quantidade };
@@ -87,7 +88,7 @@ export default function Dashboard() {
   const diaHoje = now.getDate();
 
   const vendasMesAnterior = (sales ?? []).filter((s: any) => {
-    const d = new Date(s.created_at);
+    const d = dayjs(s.date).toDate();
     return d.getMonth() === mesAnterior && d.getFullYear() === anoMesAnterior;
   });
 
@@ -99,13 +100,13 @@ export default function Dashboard() {
     const dia = i + 1;
     const totalAnterior = dia <= diasNoMesAnterior
       ? vendasMesAnterior
-          .filter((s: any) => new Date(s.created_at).getDate() === dia)
+          .filter((s: any) => dayjs(s.date).toDate().getDate() === dia)
           .reduce((acc: number, s: any) => acc + s.total_value, 0)
       : null;
     const totalAtual =
       dia <= diaHoje
         ? vendasMes
-            .filter((s: any) => new Date(s.created_at).getDate() === dia)
+            .filter((s: any) => dayjs(s.date).toDate().getDate() === dia)
             .reduce((acc: number, s: any) => acc + s.total_value, 0)
         : null;
     return { dia, mesAnterior: totalAnterior, mesAtual: totalAtual };

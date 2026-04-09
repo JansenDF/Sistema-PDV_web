@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import {
   Box, Typography, Button, TextField, IconButton, Dialog,
   DialogTitle, DialogContent, DialogActions,
-  Card, CardContent, Chip, Alert, Skeleton
+  Card, CardContent, Chip, Alert, Skeleton,
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import type { GridColDef } from "@mui/x-data-grid";
@@ -10,6 +10,10 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import PointOfSaleIcon from "@mui/icons-material/PointOfSale";
 import { Autocomplete } from "@mui/material";
 import { ptBR } from "@mui/x-data-grid/locales"
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import dayjs, { Dayjs } from 'dayjs';
 import { useQuery, useMutation } from "@tanstack/react-query";
 import axios from "axios";
 import client from "../api/client";
@@ -66,6 +70,7 @@ export default function Sales() {
   const [clientId, setClientId] = useState("");
 
   const [cart, setCart] = useState<any[]>([]);
+  const [date, setDate] = useState<Dayjs>(dayjs());
   const [product, setProduct] = useState<any>(null);
   const [quantity, setQuantity] = useState("");
   const [unitPrice, setUnitPrice] = useState("");
@@ -139,6 +144,7 @@ export default function Sales() {
     saleMutation.mutate({
       operator_id: parseInt(operatorId),
       client_id: parseInt(clientId),
+      date: date.format('YYYY-MM-DD'),
       items: cart.map((i) => ({
         product_id: i.code,
         quantity: i.quantity,
@@ -225,6 +231,7 @@ export default function Sales() {
               saleMutation.mutate({
                 operator_id: parseInt(operatorId),
                 client_id: parseInt(clientId),
+                date: date.format('YYYY-MM-DD'),
                 items: cart.map((i) => ({
                   product_id: i.code,
                   quantity: i.quantity,
@@ -299,6 +306,22 @@ export default function Sales() {
               <TextField {...params} label="Cliente" margin="dense" fullWidth required />
             )}
           />
+
+          {/* Data */}
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <DatePicker
+              label="Data"
+              value={date}
+              onChange={(newValue) => setDate(newValue || dayjs())}
+              slotProps={{
+                textField: {
+                  margin: 'dense',
+                  fullWidth: true,
+                  required: true,
+                },
+              }}
+            />
+          </LocalizationProvider>
 
           {/* Produto */}
           <Autocomplete

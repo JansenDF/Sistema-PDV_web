@@ -22,6 +22,7 @@ import { useQuery } from "@tanstack/react-query";
 import client from "../api/client";
 import HistoryIcon from "@mui/icons-material/History";
 import { useMemo, useState } from "react";
+import dayjs from "dayjs";
 
 const fetchSales = async () => {
   const { data } = await client.get("/sales");
@@ -154,10 +155,15 @@ export default function SalesHistory() {
                       mb: 2,
                     }}
                   >
-                    <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
-                      Venda #{sale.id} •{" "}
-                      {new Date(sale.created_at).toLocaleString("pt-BR")}
-                    </Typography>
+                    <Box>
+                      <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+                        Venda #{sale.id} •{" "}
+                        {sale.date ? dayjs(sale.date).format("DD/MM/YYYY"): ""}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Criado em: {sale.created_at ? new Date(sale.created_at).toLocaleString("pt-BR"): ""}
+                      </Typography>
+                    </Box>
                     <Chip
                       label={`R$ ${Number(sale?.total_value ?? 0).toLocaleString(
                         "pt-BR",
