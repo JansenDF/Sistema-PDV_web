@@ -68,6 +68,7 @@ export default function Dashboard() {
   const now = new Date();
   const mesAtual = now.getMonth();
   const anoAtual = now.getFullYear();
+  const diaHoje = now.getDate();
   const vendasMes = (sales ?? []).filter((s: any) => {
     const dataVenda = dayjs(s.date).toDate();
     return dataVenda.getMonth() === mesAtual && dataVenda.getFullYear() === anoAtual;
@@ -77,16 +78,17 @@ export default function Dashboard() {
     return dataCompra.getMonth() === mesAtual && dataCompra.getFullYear() === anoAtual;
   });
   const vendasDia = (sales ?? []).filter((s: any) => {
-  const dataVenda = dayjs(s.date).toDate();
-  return (
-    dataVenda.getDate() === now.getDate() &&
-    dataVenda.getMonth() === now.getMonth() &&
-    dataVenda.getFullYear() === now.getFullYear()
-  );
-});
+    const dataVenda = dayjs(s.date).toDate();
+    return (
+      dataVenda.getDate() === now.getDate() &&
+      dataVenda.getMonth() === now.getMonth() &&
+      dataVenda.getFullYear() === now.getFullYear()
+    );
+  });
   const totalVendasMes = vendasMes.reduce((acc: number, s: any) => acc + s.total_value, 0);
   const totalComprasMes = comprasMes.reduce((acc: number, s: any) => acc + s.total_value, 0);
   const totalVendasDia = vendasDia.reduce((acc: number, s: any) => acc + s.total_value, 0);
+  const mediaVendasDia = diaHoje > 0 ? totalVendasMes / diaHoje : 0;
 
   const nomesMeses = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
   const vendasPorMes = Array.from({ length: 12 }, (_, i) => {
@@ -106,7 +108,6 @@ export default function Dashboard() {
   const anoMesAnterior = mesAtual === 0 ? anoAtual - 1 : anoAtual;
   const diasNoMesAnterior = new Date(anoMesAnterior, mesAnterior + 1, 0).getDate();
   const diasNoMesAtual = new Date(anoAtual, mesAtual + 1, 0).getDate();
-  const diaHoje = now.getDate();
 
   const vendasMesAnterior = (sales ?? []).filter((s: any) => {
     const d = dayjs(s.date).toDate();
@@ -149,7 +150,11 @@ export default function Dashboard() {
         sx={{
           display: "grid",
           gap: 2,
-          gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", md: "repeat(3, 1fr)", lg: "repeat(5, 1fr)" },
+          gridTemplateColumns: {
+            xs: "1fr",
+            sm: "repeat(2, 1fr)",
+            md: "repeat(4, 1fr)",
+            lg: "repeat(6, 1fr)" },
           mb: 3,
         }}
       >
@@ -164,7 +169,7 @@ export default function Dashboard() {
         <Card sx={{ borderRadius: 2, backgroundColor: "#e3f2fd" }}>
           <CardContent sx={{ textAlign: "center" }}>
             <MonetizationOnIcon fontSize="large" color="success" />
-            <Typography variant="h6">Valor do Estoque</Typography>
+            <Typography variant="h6">Estoque</Typography>
             <Typography variant="h4">
               R$ {valorTotalEstoque.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </Typography>
@@ -174,7 +179,7 @@ export default function Dashboard() {
         <Card sx={{ borderRadius: 2, backgroundColor: "#e3f2fd" }}>
           <CardContent sx={{ textAlign: "center" }}>
             <AttachMoney fontSize="large" color="error" />
-            <Typography variant="h6">Vendas Dia</Typography>
+            <Typography variant="h6">Vendas(Hoje)</Typography>
             <Typography variant="h4">
               R$ {totalVendasDia.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </Typography>
@@ -183,8 +188,18 @@ export default function Dashboard() {
 
         <Card sx={{ borderRadius: 2, backgroundColor: "#e3f2fd" }}>
           <CardContent sx={{ textAlign: "center" }}>
+            <AttachMoney fontSize="large" color="error" />
+            <Typography variant="h6">Vendas(Média)</Typography>
+            <Typography variant="h4">
+              R$ {mediaVendasDia.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </Typography>
+          </CardContent>
+        </Card>
+
+        <Card sx={{ borderRadius: 2, backgroundColor: "#e3f2fd" }}>
+          <CardContent sx={{ textAlign: "center" }}>
             <AttachMoney fontSize="large" color="warning" />
-            <Typography variant="h6">Vendas Mês</Typography>
+            <Typography variant="h6">Vendas(Mês)</Typography>
             <Typography variant="h4">
               R$ {totalVendasMes.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </Typography>
@@ -194,7 +209,7 @@ export default function Dashboard() {
         <Card sx={{ borderRadius: 2, backgroundColor: "#e3f2fd" }}>
           <CardContent sx={{ textAlign: "center" }}>
             <CurrencyExchangeIcon fontSize="large" color="info" />
-            <Typography variant="h6">Compras Mês</Typography>
+            <Typography variant="h6">Compras(Mês)</Typography>
             <Typography variant="h4">
               R$ {totalComprasMes.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </Typography>
