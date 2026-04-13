@@ -4,11 +4,13 @@ import client from "../api/client";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip,
   ResponsiveContainer, CartesianGrid,
-  Legend, Line, LineChart
+  Legend, Line, LineChart,
+  LabelList
 } from "recharts";
 import InventoryIcon from "@mui/icons-material/Inventory";
 import MonetizationOnIcon from "@mui/icons-material/MonetizationOn";
 import AttachMoney from "@mui/icons-material/AttachMoney";
+import CurrencyExchangeIcon from '@mui/icons-material/CurrencyExchange';
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import dayjs from "dayjs";
 
@@ -21,6 +23,10 @@ const fetchSalesReport = async () => {
   const { data } = await client.get("/reports/sales");
   return data;
 };
+const fetchPurchasesReport = async () => {
+  const { data } = await client.get("/reports/purchases");
+  return data;
+};
 
 export default function Dashboard() {
   const { data: stock, isLoading: loadingStock, error: stockError } = useQuery({
@@ -31,8 +37,12 @@ export default function Dashboard() {
     queryKey: ["salesReport"],
     queryFn: fetchSalesReport,
   });
+  const { data: purchases, isLoading: loadingPurchases, error: purchasesError } = useQuery({
+    queryKey: ["purchasesReport"],
+    queryFn: fetchPurchasesReport,
+  });
 
-  if (loadingStock || loadingSales) {
+  if (loadingStock || loadingSales || loadingPurchases) {
     return (
       <Box sx={{ p: 3 }}>
         <Skeleton height={44} sx={{ mb: 1 }} />
@@ -43,7 +53,7 @@ export default function Dashboard() {
     );
   }
 
-  if (stockError || salesError) {
+  if (stockError || salesError || purchasesError) {
     return (
       <Box sx={{ p: 3 }}>
         <Alert severity="error">Erro ao carregar dados do dashboard.</Alert>
@@ -62,6 +72,10 @@ export default function Dashboard() {
     const dataVenda = dayjs(s.date).toDate();
     return dataVenda.getMonth() === mesAtual && dataVenda.getFullYear() === anoAtual;
   });
+  const comprasMes = (purchases ?? []).filter((s: any) => {
+    const dataCompra = dayjs(s.created_at).toDate();
+    return dataCompra.getMonth() === mesAtual && dataCompra.getFullYear() === anoAtual;
+  });
   const vendasDia = (sales ?? []).filter((s: any) => {
   const dataVenda = dayjs(s.date).toDate();
   return (
@@ -71,6 +85,7 @@ export default function Dashboard() {
   );
 });
   const totalVendasMes = vendasMes.reduce((acc: number, s: any) => acc + s.total_value, 0);
+  const totalComprasMes = comprasMes.reduce((acc: number, s: any) => acc + s.total_value, 0);
   const totalVendasDia = vendasDia.reduce((acc: number, s: any) => acc + s.total_value, 0);
 
   const nomesMeses = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
@@ -78,6 +93,12 @@ export default function Dashboard() {
     const vendasDoMes = (sales ?? []).filter((s: any) => dayjs(s.date).toDate().getMonth() === i);
     const total = vendasDoMes.reduce((acc: number, s: any) => acc + s.total_value, 0);
     const quantidade = vendasDoMes.length;
+    return { mes: nomesMeses[i], total, quantidade };
+  });
+  const comprasPorMes = Array.from({ length: 12 }, (_, i) => {
+    const comprasDoMes = (purchases ?? []).filter((s: any) => dayjs(s.created_at).toDate().getMonth() === i);
+    const total = comprasDoMes.reduce((acc: number, s: any) => acc + s.total_value, 0);
+    const quantidade = comprasDoMes.length;
     return { mes: nomesMeses[i], total, quantidade };
   });
 
@@ -128,7 +149,7 @@ export default function Dashboard() {
         sx={{
           display: "grid",
           gap: 2,
-          gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr", lg: "repeat(4, 1fr)" },
+          gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", md: "repeat(3, 1fr)", lg: "repeat(5, 1fr)" },
           mb: 3,
         }}
       >
@@ -140,7 +161,7 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card sx={{ borderRadius: 2, backgroundColor: "#e8f5e9" }}>
+        <Card sx={{ borderRadius: 2, backgroundColor: "#e3f2fd" }}>
           <CardContent sx={{ textAlign: "center" }}>
             <MonetizationOnIcon fontSize="large" color="success" />
             <Typography variant="h6">Valor do Estoque</Typography>
@@ -150,7 +171,7 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card sx={{ borderRadius: 2, backgroundColor: "#fce4ec" }}>
+        <Card sx={{ borderRadius: 2, backgroundColor: "#e3f2fd" }}>
           <CardContent sx={{ textAlign: "center" }}>
             <AttachMoney fontSize="large" color="error" />
             <Typography variant="h6">Vendas Dia</Typography>
@@ -160,12 +181,22 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card sx={{ borderRadius: 2, backgroundColor: "#fff3e0" }}>
+        <Card sx={{ borderRadius: 2, backgroundColor: "#e3f2fd" }}>
           <CardContent sx={{ textAlign: "center" }}>
             <AttachMoney fontSize="large" color="warning" />
-            <Typography variant="h6">Vendas Mes</Typography>
+            <Typography variant="h6">Vendas Mês</Typography>
             <Typography variant="h4">
               R$ {totalVendasMes.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </Typography>
+          </CardContent>
+        </Card>
+
+        <Card sx={{ borderRadius: 2, backgroundColor: "#e3f2fd" }}>
+          <CardContent sx={{ textAlign: "center" }}>
+            <CurrencyExchangeIcon fontSize="large" color="info" />
+            <Typography variant="h6">Compras Mês</Typography>
+            <Typography variant="h4">
+              R$ {totalComprasMes.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </Typography>
           </CardContent>
         </Card>
@@ -209,17 +240,59 @@ export default function Dashboard() {
               Vendas Mes (R$)
             </Typography>
             <ResponsiveContainer width="100%" height={260}>
-              <BarChart data={vendasPorMes}>
-                <CartesianGrid strokeDasharray="3 3" />
+              <BarChart data={vendasPorMes} margin={{top: 15}}>
+                {/* <CartesianGrid strokeDasharray="3 3" /> */}
                 <XAxis dataKey="mes" />
-                <YAxis />
+                {/* <YAxis /> */}
                 <Tooltip />
                 <Legend />
-                <Bar dataKey="total" fill="#1976d2" name="Valor Total" />
+                <Bar dataKey="total" fill="#1976d2" name="Valor Total">
+                  <LabelList
+                    dataKey="total"
+                    position="top"
+                    style={{fontFamily: "Roboto, sans-serif", fontSize: 12, fill: "#333"}}
+                    formatter={(value: any) => {
+                      return `${value.toLocaleString('pt-BR', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                      })}`;
+                    }}
+                  />
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
+
+        <Card sx={{ borderRadius: 2 }}>
+          <CardContent>
+            <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2 }}>
+              Compras Mes (R$)
+            </Typography>
+            <ResponsiveContainer width="100%" height={260}>
+              <BarChart data={comprasPorMes} margin={{top: 15}}>
+                {/* <CartesianGrid strokeDasharray="3 3" /> */}
+                <XAxis dataKey="mes" />
+                {/* <YAxis /> */}
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="total" fill="#56ded9" name="Valor Total">
+                  <LabelList
+                    dataKey="total"
+                    position="top"
+                    style={{fontFamily: "Roboto, sans-serif", fontSize: 12, fill: "#333"}}
+                    formatter={(value: any) => {
+                      return `${value.toLocaleString('pt-BR', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                      })}`;
+                    }}
+                  />
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card> 
       </Box>
     </Box>
   );
