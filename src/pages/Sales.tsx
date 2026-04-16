@@ -14,6 +14,7 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import dayjs, { Dayjs } from 'dayjs';
+import 'dayjs/locale/pt-br';
 import { useQuery, useMutation } from "@tanstack/react-query";
 import axios from "axios";
 import client from "../api/client";
@@ -87,18 +88,6 @@ export default function Sales() {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [cart, product, quantity, unitPrice, clientId]);
-
-  // // Confirmação ao sair
-  // useEffect(() => {
-  //   const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-  //     if (cart.length > 0) {
-  //       e.preventDefault();
-  //       e.returnValue = "";
-  //     }
-  //   };
-  //   window.addEventListener("beforeunload", handleBeforeUnload);
-  //   return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-  // }, [cart]);
 
   const handleAddItem = () => {
     if (!product || !quantity || !unitPrice) {
@@ -180,7 +169,7 @@ export default function Sales() {
 
   return (
     <>
-      <Box sx={{ px: 3, pt: 3 }}>
+      <Box sx={{ px: 3, pt: 1 }}>
         <Box
           sx={{
             display: "flex",
@@ -308,7 +297,7 @@ export default function Sales() {
           />
 
           {/* Data */}
-          <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="pt-br">
             <DatePicker
               label="Data"
               value={date}
@@ -366,7 +355,7 @@ export default function Sales() {
       </Box>
       )}
       {/* Rodapé - subtotal e finalizar */}
-      <Card sx={{ mt: 3, mx: 3, mb: 3, borderRadius: 2 }}>
+      <Card sx={{ mx: 3, mb: 3, borderRadius: 2 }}>
         <CardContent>
         <Typography variant="h6">Subtotal: R${subtotal.toFixed(2)}</Typography>
         <TextField

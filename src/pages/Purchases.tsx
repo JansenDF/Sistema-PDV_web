@@ -237,6 +237,22 @@ export default function Purchases() {
                     </TableCell>
                   </TableRow>
                 ))}
+                <TableRow>
+                  <TableCell colSpan={3} align="right" sx={{ fontWeight: "bold" }}>
+                    Total da compra:
+                  </TableCell>
+                  <TableCell align="right" sx={{ fontWeight: "bold" }}>
+                    R${" "}
+                    {(selectedPurchase?.items ?? []).reduce(
+                      (acc: number, item: any) =>
+                        acc + (Number(item?.quantity ?? 0) * Number(item?.unit_price ?? 0)),
+                      0
+                    ).toLocaleString("pt-BR", {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
+                  </TableCell>
+                </TableRow>
               </TableBody>
             </Table>
           </TableContainer>
