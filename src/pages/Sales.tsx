@@ -153,8 +153,8 @@ export default function Sales() {
     { field: "description", headerName: "Descrição", flex: 1 },
     { field: "quantity", headerName: "Qtd", width: 100 },
     { field: "stock", headerName: "Estoque", width: 100 },
-    { field: "unit_price", headerName: "Unitário", width: 120 },
-    { field: "total", headerName: "Total", width: 120 },
+    { field: "unit_price", headerName: "Unitário (R$)", width: 120, valueFormatter: (value: any) => value.toFixed(2).replace(".", ",") },
+    { field: "total", headerName: "Total (R$)", width: 120, valueFormatter: (value: any) => value.toFixed(2).replace(".", ",") },
     {
       field: "actions",
       headerName: "Ações",
@@ -319,33 +319,35 @@ export default function Sales() {
             value={product}
             onChange={(_, newValue) => {
               setProduct(newValue);
-              setUnitPrice(newValue?.price?.toString() || "");
+              setUnitPrice(newValue?.price?.toFixed(2).toString() || "");
             }}
             renderInput={(params) => (
               <TextField {...params} label="Produto" margin="dense" fullWidth required />
             )}
           />
 
-          {/* Quantidade */}
-          <TextField
-            label="Quantidade"
-            type="number"
-            margin="dense"
-            fullWidth
-            value={quantity}
-            onChange={(e) => setQuantity(e.target.value)}
-          />
+          <Box sx={{ display: "flex", gap: 2 }}>
+            {/* Quantidade */}
+            <TextField
+              label="Quantidade"
+              type="number"
+              margin="dense"
+              fullWidth
+              value={quantity}
+              onChange={(e) => setQuantity(e.target.value)}
+            />
 
-          {/* Preço Unitário */}
-          <TextField
-            label="Preço Unitário"
-            type="number"
-            margin="dense"
-            fullWidth
-            value={unitPrice}
-            disabled
-            onChange={(e) => setUnitPrice(e.target.value)}
-          />
+            {/* Preço Unitário */}
+            <TextField
+              label="Preço Unitário"
+              type="number"
+              margin="dense"
+              fullWidth
+              value={unitPrice}
+              disabled
+              onChange={(e) => setUnitPrice(e.target.value)}
+            />
+          </Box>
 
           <Button variant="outlined" sx={{ mt: 2 }} onClick={handleAddItem}>
             Adicionar Item
@@ -357,16 +359,15 @@ export default function Sales() {
       {/* Rodapé - subtotal e finalizar */}
       <Card sx={{ mx: 3, mb: 3, borderRadius: 2 }}>
         <CardContent>
-        <Typography variant="h6">Subtotal: R${subtotal.toFixed(2)}</Typography>
+        <Typography variant="h6">Subtotal: R${subtotal.toFixed(2).replace(".", ",")}</Typography>
         <TextField
           label="Valor Recebido"
           type="number"
           margin="dense"
-          fullWidth
           value={received}
           onChange={(e) => setReceived(e.target.value)}
         />
-        <Typography variant="h6">Troco: R${troco.toFixed(2)}</Typography>
+        <Typography variant="h6">Troco: R${troco.toFixed(2).replace(".", ",")}</Typography>
 
         <Button
           variant="contained"
