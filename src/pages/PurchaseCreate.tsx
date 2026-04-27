@@ -238,7 +238,7 @@ export default function PurchaseCreate() {
           {items.length > 0 && (
             <Box sx={{ mt: 3 }}>
               <Typography variant="subtitle1" sx={{ fontWeight: "bold", mb: 1 }}>
-                Itens adicionados
+                Itens adicionados - Total: R$ {items.reduce((acc, item) => acc + item.unit_price * item.quantity, 0).toFixed(2).replace(".", ",")}
               </Typography>
               <Box
                 sx={{
