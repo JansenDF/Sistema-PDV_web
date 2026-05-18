@@ -23,7 +23,8 @@ const fetchProducts = async () => {
 const updateProduct = async (product: any) => {
   const { data } = await client.patch(`/products/${product.id}`, {
     description: product.description,
-    price: product.price
+    price: product.price,
+    barcode: product.barcode,
   });
   return data;
 };
@@ -46,6 +47,7 @@ export default function Products() {
     id: "",
     description: "",
     price: "",
+    barcode: "",
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -58,12 +60,14 @@ export default function Products() {
       id: form.id,
       description: form.description,
       price: parseFloat(form.price),
+      barcode: form.barcode,
     });
     setOpen(false);
     setForm({
       id: "",
       description: "",
       price: "",
+      barcode: "",
     });
   };
 
@@ -72,6 +76,7 @@ export default function Products() {
       id: row.id,
       description: row.description,
       price: row.price,
+      barcode: row.barcode,
     });
     setOpen(true);
   };
@@ -229,6 +234,15 @@ export default function Products() {
             type="number"
             fullWidth
             value={form.price}
+            onChange={handleChange}
+          />
+          <TextField
+            margin="dense"
+            label="Código de Barras"
+            name="barcode"
+            type="number"
+            fullWidth
+            value={form.barcode}
             onChange={handleChange}
           />
         </DialogContent>

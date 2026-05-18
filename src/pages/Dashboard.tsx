@@ -71,7 +71,11 @@ export default function Dashboard() {
   const diaHoje = now.getDate();
   const vendasMes = (sales ?? []).filter((s: any) => {
     const dataVenda = dayjs(s.date).toDate();
-    return dataVenda.getMonth() === mesAtual && dataVenda.getFullYear() === anoAtual;
+    return (
+      dataVenda.getMonth() === mesAtual &&
+      dataVenda.getFullYear() === anoAtual &&
+      s.client_name !== "inventario"
+    );
   });
   const comprasMes = (purchases ?? []).filter((s: any) => {
     const dataCompra = dayjs(s.created_at).toDate();
@@ -111,7 +115,7 @@ export default function Dashboard() {
 
   const vendasMesAnterior = (sales ?? []).filter((s: any) => {
     const d = dayjs(s.date).toDate();
-    return d.getMonth() === mesAnterior && d.getFullYear() === anoMesAnterior;
+    return d.getMonth() === mesAnterior && d.getFullYear() === anoMesAnterior && s.client_name !== "inventario";
   });
 
   const diasNoGrafico = Math.max(diasNoMesAnterior, diaHoje, diasNoMesAtual);
@@ -221,13 +225,16 @@ export default function Dashboard() {
         <Card sx={{ borderRadius: 2 }}>
           <CardContent>
             <Typography variant="h6" sx={{ fontWeight: "bold", mb: 1 }}>
-              Vendas por dia (R$)
+              Vendas Dia a Dia
             </Typography>
             <ResponsiveContainer width="100%" height={260}>
               <LineChart data={vendasPorDiaComparativo}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="dia" />
-                <YAxis />
+                <YAxis
+                  fontSize={12}
+                  tickFormatter={(value) => `R$ ${value.toLocaleString('pt-BR')}`}
+                />
                 <Tooltip />
                 <Legend />
                 <Line
@@ -252,7 +259,7 @@ export default function Dashboard() {
         <Card sx={{ borderRadius: 2 }}>
           <CardContent>
             <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2 }}>
-              Vendas Mes (R$)
+              Vendas Mês (R$)
             </Typography>
             <ResponsiveContainer width="100%" height={260}>
               <BarChart data={vendasPorMes} margin={{top: 15}}>
@@ -282,7 +289,7 @@ export default function Dashboard() {
         <Card sx={{ borderRadius: 2 }}>
           <CardContent>
             <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2 }}>
-              Compras Mes (R$)
+              Compras Mês (R$)
             </Typography>
             <ResponsiveContainer width="100%" height={260}>
               <BarChart data={comprasPorMes} margin={{top: 15}}>

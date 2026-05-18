@@ -16,6 +16,8 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import dayjs, { Dayjs } from 'dayjs';
 import 'dayjs/locale/pt-br';
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { Html5QrcodeScanner } from "html5-qrcode"
+import QrCodeScannerIcon from '@mui/icons-material/QrCodeScanner';
 import axios from "axios";
 import client from "../api/client";
 
@@ -78,6 +80,7 @@ export default function Sales() {
   const [received, setReceived] = useState("");
   const [confirmExit, setConfirmExit] = useState(false);
   const [confirmSale, setConfirmSale] = useState(false);
+  const [scannerAberto, setScannerAberto] = useState(false);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -88,6 +91,45 @@ export default function Sales() {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [cart, product, quantity, unitPrice, clientId]);
+
+  useEffect(() => {
+    let html5QrcodeScanner: Html5QrcodeScanner | null = null;
+
+    if (scannerAberto) {
+      // Pequeno timeout para garantir que a div DOM do Dialog já renderizou
+      setTimeout(() => {
+        html5QrcodeScanner = new Html5QrcodeScanner(
+          "leitor-camera-pwa",
+          { fps: 10, qrbox: { width: 250, height: 150 } },
+          /* verbose= */ false
+        );
+        html5QrcodeScanner.render(aoDetectarCodigo, (err) => {});
+      }, 300);
+    }
+
+    return () => {
+      if (html5QrcodeScanner) {
+        html5QrcodeScanner.clear().catch(err => console.error("Erro ao limpar scanner", err));
+      }
+    };
+  }, [scannerAberto, products]);
+
+  const aoDetectarCodigo = (codigoTexto: string) => {
+    if (!products) return;
+
+    // Procura o produto correspondente pela nova coluna 'barcode'
+    const produtoEncontrado = products.find((p: any) => p.barcode === codigoTexto);
+
+    if (produtoEncontrado) {
+      setProduct(produtoEncontrado);
+      setUnitPrice(produtoEncontrado.price || ""); // Seta o valor unitário padrão se houver no seu objeto
+      setQuantity("1"); // Inicia sugerindo uma unidade padrão
+      setScannerAberto(false); // Fecha a câmera
+    } else {
+      alert(`Produto com código ${codigoTexto} não foi localizado no cadastro.`);
+      setScannerAberto(false);
+    }
+  };
 
   const handleAddItem = () => {
     if (!product || !quantity || !unitPrice) {
@@ -352,6 +394,25 @@ export default function Sales() {
           <Button variant="outlined" sx={{ mt: 2 }} onClick={handleAddItem}>
             Adicionar Item
           </Button>
+          <Button
+            variant="outlined"
+            color="secondary"
+            startIcon={<QrCodeScannerIcon />}
+            onClick={() => setScannerAberto(true)}
+          >
+            Bipar Bebida (Celular)
+          </Button>
+          <Dialog open={scannerAberto} onClose={() => setScannerAberto(false)} fullWidth maxWidth="xs">
+            <DialogTitle textAlign="center">Aproxime o Código de Barras</DialogTitle>
+            <DialogContent>
+              <div id="leitor-camera-pwa" style={{ width: "100%" }}></div>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setScannerAberto(false)} color="error">
+                Fechar Câmera
+              </Button>
+            </DialogActions>
+          </Dialog>
           </CardContent>
         </Card>
       </Box>

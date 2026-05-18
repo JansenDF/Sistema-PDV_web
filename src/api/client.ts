@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const api = "http://127.0.0.1:8000";
+const api = "http://192.168.1.25:8000";
 
 const client = axios.create({
   baseURL: api, // sua API FastAPI
